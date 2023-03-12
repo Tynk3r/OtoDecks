@@ -2,40 +2,47 @@
   ==============================================================================
 
     DJAudioPlayer.h
-    Created: 12 Mar 2023 12:38:34pm
-    Author:  googa
+    Created: 13 Mar 2020 4:22:22pm
+    Author:  matthew
 
   ==============================================================================
 */
 
 #pragma once
-// assumes your JuceHeader file is here
-// check your MainComponent.h to see
-// how the include is configured on your system
+
 #include "../JuceLibraryCode/JuceHeader.h"
 
-class DJAudioPlayer :   public juce::AudioSource
-{
-public:
-    DJAudioPlayer(juce::AudioFormatManager& _formatManager);
-    ~DJAudioPlayer();
-    void loadURL(juce::URL file);           // Load file path
-    void play();
-    void stop();
-    void setPosition(double pos);     
-    void setGain(double gain);        
-    void setSpeed(double ratio);      
+class DJAudioPlayer : public AudioSource {
+  public:
 
-    void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
-    void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
+    DJAudioPlayer(AudioFormatManager& _formatManager);
+    ~DJAudioPlayer();
+
+    void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override;
+    void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
+
+    void loadURL(URL audioURL);
+    void setGain(double gain);
+    void setSpeed(double ratio);
+    void setPosition(double posInSecs);
+    void setPositionRelative(double pos);
     
-    /** get the relative position of the play head */
+
+    void start();
+    void stop();
+
+    /** get the relative position of the playhead */
     double getPositionRelative();
 
 private:
-    juce::AudioFormatManager& formatManager;
-    std::unique_ptr<juce::AudioFormatReaderSource> readerSource;
-    juce::AudioTransportSource transportSource; 
-    juce::ResamplingAudioSource resampleSource{ &transportSource, false, 2 };
+    AudioFormatManager& formatManager;
+    std::unique_ptr<AudioFormatReaderSource> readerSource;
+    AudioTransportSource transportSource; 
+    ResamplingAudioSource resampleSource{&transportSource, false, 2};
+
 };
+
+
+
+
