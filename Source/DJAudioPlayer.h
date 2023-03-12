@@ -17,10 +17,14 @@ class DJAudioPlayer : public AudioSource {
     void setSpeed(double ratio);
     void setPosition(double posInSecs);
     void setPositionRelative(double pos);
-    
 
     void start();
     void stop();
+    void toggleLoop();
+
+    bool getLooping();
+
+    bool isPlaying();
 
     /** get the relative position of the playhead */
     double getPositionRelative();
@@ -30,7 +34,7 @@ private:
     std::unique_ptr<AudioFormatReaderSource> readerSource;
     AudioTransportSource transportSource; 
     ResamplingAudioSource resampleSource{&transportSource, false, 2};
-
+    bool isLoaded = false;
 };
 
 

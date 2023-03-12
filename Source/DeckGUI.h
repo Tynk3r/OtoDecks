@@ -32,11 +32,12 @@ public:
 private:
     TextButton playButton{"PLAY"};
     TextButton stopButton{"STOP"};
-    TextButton loadButton{"LOAD"};
   
     Slider volSlider; 
     Slider speedSlider;
     Slider posSlider;
+
+    TextButton loopButton{ "LOAD A TRACK!" };
 
     FileChooser fChooser{"Select a file..."};
 

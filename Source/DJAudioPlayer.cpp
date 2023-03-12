@@ -47,6 +47,7 @@ void DJAudioPlayer::loadURL(URL audioURL)
             true));
         transportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
         readerSource.reset(newSource.release());
+        isLoaded = true;
     }
 }
 
@@ -60,7 +61,6 @@ void DJAudioPlayer::setGain(double gain)
     {
         transportSource.setGain(gain);
     }
-
 }
 
 void DJAudioPlayer::setSpeed(double ratio)
@@ -97,9 +97,25 @@ void DJAudioPlayer::start()
 {
     transportSource.start();
 }
+
 void DJAudioPlayer::stop()
 {
     transportSource.stop();
+}
+
+void DJAudioPlayer::toggleLoop()
+{
+    readerSource->setLooping(!readerSource->isLooping());
+}
+
+bool DJAudioPlayer::getLooping()
+{
+    return readerSource->isLooping();
+}
+
+bool DJAudioPlayer::isPlaying()
+{
+    return isLoaded;
 }
 
 double DJAudioPlayer::getPositionRelative()

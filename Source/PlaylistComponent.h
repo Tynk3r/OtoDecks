@@ -37,8 +37,8 @@ private:
     TableListBox tableComponent;
     std::vector<Track> tracks;
     std::vector<Track> filteredTracks;
-    TextButton deck1Button{ "PLAY SELECTED ON DECK 1" };
-    TextButton deck2Button{ "PLAY SELECTED ON DECK 2" };
+    TextButton deck1Button{ "LOAD SELECTED TO DECK 1" };
+    TextButton deck2Button{ "LOAD SELECTED TO DECK 2" };
     TextButton loadButton{ "ADD TRACKS" };
     TextButton clearButton{ "CLEAR TRACKS" };
     Label searchLabel;
