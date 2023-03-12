@@ -84,7 +84,6 @@ void WaveformDisplay::loadURL(URL audioURL)
   else {
     std::cout << "wfd: not loaded! " << std::endl;
   }
-
 }
 
 void WaveformDisplay::changeListenerCallback (ChangeBroadcaster *source)

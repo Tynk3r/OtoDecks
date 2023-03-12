@@ -36,6 +36,8 @@ public:
 private:
     TableListBox tableComponent;
     std::vector<std::string> trackTitles;
+    TextButton loadButton{ "ADD TRACK" };
+    TextButton clearButton{ "CLEAR TRACKS" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlaylistComponent)
 };

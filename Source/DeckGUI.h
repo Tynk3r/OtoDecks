@@ -55,7 +55,6 @@ private:
 
     FileChooser fChooser{"Select a file..."};
 
-
     WaveformDisplay waveformDisplay;
 
     DJAudioPlayer* player; 

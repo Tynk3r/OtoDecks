@@ -22,30 +22,26 @@ DeckGUI::DeckGUI(DJAudioPlayer* _player,
     addAndMakeVisible(playButton);
     addAndMakeVisible(stopButton);
     addAndMakeVisible(loadButton);
+
+    playButton.addListener(this);
+    stopButton.addListener(this);
+    loadButton.addListener(this);
        
     addAndMakeVisible(volSlider);
     addAndMakeVisible(speedSlider);
     addAndMakeVisible(posSlider);
 
-    addAndMakeVisible(waveformDisplay);
-
-
-    playButton.addListener(this);
-    stopButton.addListener(this);
-    loadButton.addListener(this);
-
     volSlider.addListener(this);
     speedSlider.addListener(this);
     posSlider.addListener(this);
 
-
     volSlider.setRange(0.0, 1.0);
-    speedSlider.setRange(0.0, 100.0);
+    speedSlider.setRange(0.1, 10);
     posSlider.setRange(0.0, 1.0);
 
+    addAndMakeVisible(waveformDisplay);
+
     startTimer(500);
-
-
 }
 
 DeckGUI::~DeckGUI()
@@ -83,26 +79,21 @@ void DeckGUI::resized()
     posSlider.setBounds(0, rowH * 4, getWidth(), rowH);
     waveformDisplay.setBounds(0, rowH * 5, getWidth(), rowH * 2);
     loadButton.setBounds(0, rowH * 7, getWidth(), rowH);
-
 }
 
 void DeckGUI::buttonClicked(Button* button)
 {
     if (button == &playButton)
     {
-        std::cout << "Play button was clicked " << std::endl;
         player->start();
     }
-     if (button == &stopButton)
+    else if (button == &stopButton)
     {
-        std::cout << "Stop button was clicked " << std::endl;
         player->stop();
-
-    }
-       if (button == &loadButton)
+            }
+    else if (button == &loadButton)
     {
-        auto fileChooserFlags = 
-        FileBrowserComponent::canSelectFiles;
+        auto fileChooserFlags = FileBrowserComponent::canSelectFiles;
         fChooser.launchAsync(fileChooserFlags, [this](const FileChooser& chooser)
         {
             player->loadURL(URL{chooser.getResult()});
@@ -110,18 +101,6 @@ void DeckGUI::buttonClicked(Button* button)
             waveformDisplay.loadURL(URL{chooser.getResult()}); 
         });
     }
-    // if (button == &loadButton)
-    // {
-    //     FileChooser chooser{"Select a file..."};
-    //     if (chooser.browseForFileToOpen())
-    //     {
-    //         player->loadURL(URL{chooser.getResult()});
-    //         waveformDisplay.loadURL(URL{chooser.getResult()});
-            
-    //     }
-
-
-    // }
 }
 
 void DeckGUI::sliderValueChanged (Slider *slider)

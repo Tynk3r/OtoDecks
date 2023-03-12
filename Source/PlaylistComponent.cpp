@@ -15,10 +15,17 @@
 PlaylistComponent::PlaylistComponent()
 {
     addAndMakeVisible(tableComponent);
-    tableComponent.getHeader().addColumn("Track Title", 1, 400);
-    tableComponent.getHeader().addColumn("", 2, 200);
+    tableComponent.getHeader().addColumn("Filename", 1, 400);
+    tableComponent.getHeader().addColumn("Length", 2, 150);
+    tableComponent.getHeader().addColumn("", 3, 150);
+    tableComponent.getHeader().addColumn("", 4, 150);
 
     tableComponent.setModel(this);
+
+    addAndMakeVisible(loadButton);
+    loadButton.addListener(this);
+    addAndMakeVisible(clearButton);
+    clearButton.addListener(this);
 
     trackTitles.push_back("Track 1");
     trackTitles.push_back("Track 2");
@@ -32,13 +39,6 @@ PlaylistComponent::~PlaylistComponent()
 
 void PlaylistComponent::paint (juce::Graphics& g)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
-
-       You should replace everything in this method with your own
-       drawing code..
-    */
-
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
 
     g.setColour (juce::Colours::grey);
@@ -46,13 +46,15 @@ void PlaylistComponent::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (14.0f);
-    g.drawText ("PlaylistComponent", getLocalBounds(),
-                juce::Justification::centred, true);   // draw some placeholder text
+    g.drawText ("PlaylistComponent", getLocalBounds(), juce::Justification::centred, true);   // draw some placeholder text
 }
 
 void PlaylistComponent::resized()
 {
-    tableComponent.setBounds(0, 0, getWidth(), getHeight());
+    float height = getHeight() / 8;
+    tableComponent.setBounds(0, 0, getWidth(), height * 7);
+    loadButton.setBounds(0, height * 7, getWidth() / 2, height);
+    clearButton.setBounds(getWidth() / 2, height * 7, getWidth() / 2, height);
 }
 
 int PlaylistComponent::getNumRows()
@@ -74,21 +76,31 @@ void PlaylistComponent::paintRowBackground(Graphics& g, int rowNumber, int width
 
 void PlaylistComponent::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
-    g.drawText(trackTitles[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
+    switch (columnId)
+    {
+    case 1: // Filename
+        g.drawText(trackTitles[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
+        break;
+    case 2: // Length
+        g.drawText("long", 2, 0, width - 4, height, Justification::centredLeft, true);
+        break;
+    default:
+        break;
+    }
 }
 
 void PlaylistComponent::cellClicked(int rowNumber, int columnId, const MouseEvent&)
 {
-    std::cout << "Row " << rowNumber << ", column " << columnId << std::endl;
+
 }
 
 Component* PlaylistComponent::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate)
 {
-    if (columnId == 2) // Track Titles
+    if (columnId == 3)
     {
         if (existingComponentToUpdate == nullptr)
         {
-            TextButton* btn = new TextButton("play");
+            TextButton* btn = new TextButton("Play on 1");
             existingComponentToUpdate = btn;
             btn->addListener(this);
             String id{ std::to_string(rowNumber) };
@@ -100,5 +112,10 @@ Component* PlaylistComponent::refreshComponentForCell(int rowNumber, int columnI
 
 void PlaylistComponent::buttonClicked(Button* button)
 {
-    int id = std::stoi(button->getComponentID().toStdString());
+    if (button == &loadButton)
+    {
+        trackTitles.push_back("Track 5");
+        tableComponent.updateContent();
+        tableComponent.repaint();
+    }
 }
