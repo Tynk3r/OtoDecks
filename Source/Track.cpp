@@ -1,9 +1,24 @@
 #include "track.h"
 
-Track::Track(String name, int length, URL filepath) {
+Track::Track() {
+	this->name = "";
+	this->format = "";
+	this->length = 0;
+	this->filepath = URL();
+}
+
+Track::Track(String name, String format, int length, URL filepath) {
 	this->name = name;
+	this->format = format;
 	this->length = length;
 	this->filepath = filepath;
+}
+
+bool Track::operator==(const Track& other) const {
+	return (name == other.name) &&
+		(format == other.format) &&
+		(length == other.length) &&
+		(filepath == other.filepath);
 }
 
 String Track::getName() {
@@ -12,6 +27,14 @@ String Track::getName() {
 
 void Track::setName(String name) {
 	this->name = name;
+}
+
+String Track::getFormat() {
+	return format;
+}
+
+void Track::setFormat(String format) {
+	this->format = format;
 }
 
 int Track::getLength() {

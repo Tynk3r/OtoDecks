@@ -7,10 +7,16 @@
 
 class Track {
 public:
-	Track(String name, int length, URL filepath);
+	Track();
+	Track(String name, String format, int length, URL filepath);
+
+	bool operator==(const Track& other) const;
 
 	String getName();
 	void setName(String name);
+
+	String getFormat();
+	void setFormat(String format);
 
 	int getLength();
 	void setLength(int length);
@@ -20,6 +26,7 @@ public:
 
 private:
 	String name;
+	String format;
 	int length;
 	URL filepath;
 };

@@ -4,6 +4,7 @@
 //==============================================================================
 PlaylistComponent::PlaylistComponent()
 {
+    // Search Bar
     addAndMakeVisible(searchLabel);
     searchLabel.setText("SEARCH FOR ->", dontSendNotification);
     searchLabel.setJustificationType(Justification::centred);
@@ -13,20 +14,29 @@ PlaylistComponent::PlaylistComponent()
     searchBar.setColour(juce::Label::backgroundColourId, juce::Colours::lightgrey);
     searchBar.onTextChange = [this] { searchText = searchBar.getText().toLowerCase(); FilterTracks(); };
 
+    // Table and Columns
     addAndMakeVisible(tableComponent);
-    tableComponent.getHeader().addColumn("Filename", 1, 400);
-    tableComponent.getHeader().addColumn("Length", 2, 100);
-    tableComponent.getHeader().addColumn("", 3, 150);
-    tableComponent.getHeader().addColumn("", 4, 150);
-
+    auto columnFlags = TableHeaderComponent::notResizableOrSortable;
+    tableComponent.getHeader().addColumn("#",           1, 30, 0, 0, columnFlags);
+    tableComponent.getHeader().addColumn("Filename",    2, 200, 0, 0, columnFlags);
+    tableComponent.getHeader().addColumn("Format",      3, 50, 0, 0, columnFlags);
+    tableComponent.getHeader().addColumn("Length",      4, 100, 0, 0, columnFlags);
     tableComponent.setModel(this);
 
+    // Load and Clear Buttons
+    addAndMakeVisible(deck1Button);
+    deck1Button.addListener(this);
+    addAndMakeVisible(deck2Button);
+    deck2Button.addListener(this);
     addAndMakeVisible(loadButton);
     loadButton.addListener(this);
     addAndMakeVisible(clearButton);
     clearButton.addListener(this);
 
-    tracks.push_back(Track("Track 1", 2, URL()));
+    // Track
+    selectedTrack = Track();
+    tracks = loadTracksFromCSV("trackurls.csv");
+
     FilterTracks();
 }
 
@@ -34,7 +44,7 @@ PlaylistComponent::~PlaylistComponent()
 {
 }
 
-void PlaylistComponent::paint (juce::Graphics& g)
+void PlaylistComponent::paint(juce::Graphics& g)
 {
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
 
@@ -49,11 +59,16 @@ void PlaylistComponent::paint (juce::Graphics& g)
 void PlaylistComponent::resized()
 {
     float height = getHeight() / 8;
-    searchLabel.setBounds(0, 0, getWidth() * 0.25f, height);
-    searchBar.setBounds(getWidth() * 0.25f, 0, getWidth() * 0.75f, height);
-    tableComponent.setBounds(0, height, getWidth(), height * 6);
-    loadButton.setBounds(0, height * 7, getWidth() / 2, height);
-    clearButton.setBounds(getWidth() / 2, height * 7, getWidth() / 2, height);
+    float width = getWidth() / 2;
+    searchLabel.setBounds(0, 0, getWidth() * 0.125f, height);
+    searchBar.setBounds(getWidth() * 0.125f, 0, getWidth() * 0.375f, height);
+
+    tableComponent.setBounds(0, height, width, height * 7);
+
+    deck1Button.setBounds(width, 0, getWidth() / 2, height * 2);
+    deck2Button.setBounds(width, height * 2, getWidth() / 2, height * 2);
+    loadButton.setBounds(width, height * 4, getWidth() / 2, height * 2);
+    clearButton.setBounds(width, height * 6, getWidth() / 2, height * 2);
 }
 
 int PlaylistComponent::getNumRows()
@@ -71,58 +86,91 @@ void PlaylistComponent::paintRowBackground(Graphics& g, int rowNumber, int width
     {
         g.fillAll(Colours::darkgrey);
     }
+    g.drawRect(0, 0, width, height);
 }
 
 void PlaylistComponent::paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected)
 {
     switch (columnId)
     {
-    case 1: // Filename
+    case 1: // #
+        g.drawText(String(rowNumber), 2, 0, width - 4, height, Justification::centredLeft, true);
+        break;
+    case 2: // Filename
         g.drawText(filteredTracks[rowNumber].getName(), 2, 0, width - 4, height, Justification::centredLeft, true);
         break;
-    case 2: // Length
-        g.drawText(std::to_string(filteredTracks[rowNumber].getLength()), 2, 0, width - 4, height, Justification::centredLeft, true);
+    case 3: // Format
+        g.drawText(filteredTracks[rowNumber].getFormat(), 2, 0, width - 4, height, Justification::centredLeft, true);
+        break;
+    case 4: // Length
+        g.drawText(std::to_string(filteredTracks[rowNumber].getLength()) + "s", 2, 0, width - 4, height, Justification::centredLeft, true);
         break;
     default:
         break;
     }
+    g.drawRect(0, 0, width, height);
 }
 
 void PlaylistComponent::cellClicked(int rowNumber, int columnId, const MouseEvent&)
 {
+}
 
+void PlaylistComponent::selectedRowsChanged(int row)
+{
+    if (!filteredTracks.empty())
+    {
+        selectedTrack = filteredTracks[row];
+    DBG("Selected track: " + selectedTrack.getName());
+    }
 }
 
 Component* PlaylistComponent::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate)
 {
-    if (existingComponentToUpdate == nullptr) {
-        TextButton* btn = nullptr;
-        if (columnId == 3) {
-            btn = new TextButton("Play on 1");
-        }
-        else if (columnId == 4) {
-            btn = new TextButton("Play on 2");
-        }
-        if (btn != nullptr) {
-            btn->addListener(this);
-            btn->setComponentID(String(rowNumber));
-            existingComponentToUpdate = btn;
-        }
-    }
     return existingComponentToUpdate;
 }
 
 void PlaylistComponent::buttonClicked(Button* button)
 {
-    if (button == &loadButton)
+    if (button == &deck1Button)
     {
-        tracks.push_back(Track("Track 2", 2, URL()));
+        
     }
-    FilterTracks();
+    else if (button == &deck2Button)
+    {
+        
+    }
+    else if (button == &loadButton)
+    {
+        auto fileChooserFlags = FileBrowserComponent::canSelectMultipleItems;
+        fChooser.launchAsync(fileChooserFlags, [this](const FileChooser& chooser)
+            {
+                if (!chooser.getResults().isEmpty())
+                {
+                    for (File f : chooser.getResults())
+                    {
+                        Track addedTrack = loadURL(URL{ f });
+                        if (tracks.empty() || std::find(tracks.begin(), tracks.end(), addedTrack) == tracks.end())
+                        {
+                            tracks.push_back(addedTrack);
+                        }
+                    }
+                    FilterTracks();                    
+                }                
+            });
+    }
+    else if (button == &clearButton)
+    {
+        if (!tracks.empty())
+        {
+            tracks.clear();
+        }
+        FilterTracks();
+    }
 }
 
 void PlaylistComponent::FilterTracks()
 {
+    saveTracksToCSV(tracks, "trackurls.csv");
     if (!filteredTracks.empty())
     {
         filteredTracks.clear();
@@ -146,4 +194,56 @@ void PlaylistComponent::FilterTracks()
     }
     tableComponent.updateContent();
     tableComponent.repaint();
+}
+
+Track PlaylistComponent::loadURL(URL audioURL)
+{
+    AudioFormatManager formatManager;
+    formatManager.registerBasicFormats(); // register basic audio formats (e.g. WAV, AIFF)
+
+    std::unique_ptr<AudioFormatReader> reader(formatManager.createReaderFor(audioURL.createInputStream(false))); // create an input stream from the URL and try to create a reader from the stream
+
+    if (reader.get() != nullptr) // if reader was created successfully
+    {
+        const int lengthInSeconds = reader->lengthInSamples / reader->sampleRate; // calculate length in seconds
+        const String fileFormat = reader->getFormatName(); // get file format name
+
+        return Track(audioURL.getFileName(), fileFormat, lengthInSeconds, audioURL);
+    }
+    else
+    {
+        std::cout << "Failed to load audio file from URL: " << audioURL.toString(true) << std::endl;
+    }
+}
+
+void PlaylistComponent::saveTracksToCSV(std::vector<Track> tracks, std::string filename) {
+    std::ofstream outfile(filename, std::ofstream::trunc);
+    if (outfile) {
+        for (auto track : tracks) {
+            outfile << track.getURL().toString(false) << std::endl;
+        }
+        outfile.close();
+    }
+}
+
+std::vector<Track> PlaylistComponent::loadTracksFromCSV(std::string filename) {
+    std::vector<Track> tracks;
+    std::ifstream infile(filename);
+    if (infile) {
+        std::string line;
+        while (std::getline(infile, line)) {
+            std::istringstream iss(line);
+            std::vector<std::string> tokens;
+            std::string token;
+            while (std::getline(iss, token, ',')) {
+                tokens.push_back(token);
+            }
+            if (tokens.size() == 1) {
+                URL filepath(tokens[0]);
+                tracks.push_back(loadURL(filepath));
+            }
+        }
+        infile.close();
+    }
+    return tracks;
 }

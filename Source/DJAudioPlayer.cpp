@@ -47,6 +47,7 @@ true));
         readerSource.reset (newSource.release());          
     }
 }
+
 void DJAudioPlayer::setGain(double gain)
 {
     if (gain < 0 || gain > 1.0)
@@ -58,6 +59,7 @@ void DJAudioPlayer::setGain(double gain)
     }
    
 }
+
 void DJAudioPlayer::setSpeed(double ratio)
 {
   if (ratio < 0 || ratio > 100.0)
