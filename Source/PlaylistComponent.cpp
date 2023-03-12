@@ -2,7 +2,7 @@
 #include "PlaylistComponent.h"
 
 //==============================================================================
-PlaylistComponent::PlaylistComponent()
+PlaylistComponent::PlaylistComponent(DeckGUI* deck1, DeckGUI* deck2) : deckGUI1(*deck1), deckGUI2(*deck2)
 {
     // Search Bar
     addAndMakeVisible(searchLabel);
@@ -133,11 +133,11 @@ void PlaylistComponent::buttonClicked(Button* button)
 {
     if (button == &deck1Button)
     {
-        
+        deckGUI1.loadURL(selectedTrack.getURL());
     }
     else if (button == &deck2Button)
     {
-        
+        deckGUI2.loadURL(selectedTrack.getURL());
     }
     else if (button == &loadButton)
     {

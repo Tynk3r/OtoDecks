@@ -12,13 +12,12 @@
 #include "DeckGUI.h"
 
 //==============================================================================
-DeckGUI::DeckGUI(DJAudioPlayer* _player, 
-                AudioFormatManager & 	formatManagerToUse,
-                AudioThumbnailCache & 	cacheToUse
-           ) : player(_player), 
-               waveformDisplay(formatManagerToUse, cacheToUse)
+DeckGUI::DeckGUI(DJAudioPlayer* _player,
+    AudioFormatManager& formatManagerToUse,
+    AudioThumbnailCache& cacheToUse
+) : player(_player),
+waveformDisplay(formatManagerToUse, cacheToUse)
 {
-
     addAndMakeVisible(playButton);
     addAndMakeVisible(stopButton);
     addAndMakeVisible(loadButton);
@@ -26,7 +25,7 @@ DeckGUI::DeckGUI(DJAudioPlayer* _player,
     playButton.addListener(this);
     stopButton.addListener(this);
     loadButton.addListener(this);
-       
+
     addAndMakeVisible(volSlider);
     addAndMakeVisible(speedSlider);
     addAndMakeVisible(posSlider);
@@ -49,19 +48,19 @@ DeckGUI::~DeckGUI()
     stopTimer();
 }
 
-void DeckGUI::paint (Graphics& g)
+void DeckGUI::paint(Graphics& g)
 {
-    g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));   // clear the background
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));   // clear the background
 
-    g.setColour (Colours::grey);
-    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
+    g.setColour(Colours::grey);
+    g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
 }
 
 void DeckGUI::resized()
 {
-    double rowH = getHeight() / 8; 
+    double rowH = getHeight() / 8;
     playButton.setBounds(0, 0, getWidth(), rowH);
-    stopButton.setBounds(0, rowH, getWidth(), rowH);  
+    stopButton.setBounds(0, rowH, getWidth(), rowH);
     volSlider.setBounds(0, rowH * 2, getWidth(), rowH);
     speedSlider.setBounds(0, rowH * 3, getWidth(), rowH);
     posSlider.setBounds(0, rowH * 4, getWidth(), rowH);
@@ -83,15 +82,20 @@ void DeckGUI::buttonClicked(Button* button)
     {
         auto fileChooserFlags = FileBrowserComponent::canSelectFiles;
         fChooser.launchAsync(fileChooserFlags, [this](const FileChooser& chooser)
-        {
-            player->loadURL(URL{chooser.getResult()});
-            // and now the waveformDisplay as well
-            waveformDisplay.loadURL(URL{chooser.getResult()}); 
-        });
+            {
+                loadURL(URL{ chooser.getResult() });
+            });
     }
 }
 
-void DeckGUI::sliderValueChanged (Slider *slider)
+void DeckGUI::loadURL(URL audioURL)
+{
+    currentTrack = audioURL;
+    player->loadURL(audioURL);
+    waveformDisplay.loadURL(audioURL);
+}
+
+void DeckGUI::sliderValueChanged(Slider* slider)
 {
     if (slider == &volSlider)
     {
@@ -102,36 +106,28 @@ void DeckGUI::sliderValueChanged (Slider *slider)
     {
         player->setSpeed(slider->getValue());
     }
-    
+
     if (slider == &posSlider)
     {
         player->setPositionRelative(slider->getValue());
     }
-    
 }
 
-bool DeckGUI::isInterestedInFileDrag (const StringArray &files)
+bool DeckGUI::isInterestedInFileDrag(const StringArray& files)
 {
-  std::cout << "DeckGUI::isInterestedInFileDrag" << std::endl;
-  return true; 
+    return true;
 }
 
-void DeckGUI::filesDropped (const StringArray &files, int x, int y)
+void DeckGUI::filesDropped(const StringArray& files, int x, int y)
 {
-  std::cout << "DeckGUI::filesDropped" << std::endl;
-  if (files.size() == 1)
-  {
-    player->loadURL(URL{File{files[0]}});
-  }
+    if (files.size() == 1)
+    {
+        player->loadURL(URL{ File{files[0]} });
+    }
 }
 
 void DeckGUI::timerCallback()
 {
-    //std::cout << "DeckGUI::timerCallback" << std::endl;
     waveformDisplay.setPositionRelative(
-            player->getPositionRelative());
+        player->getPositionRelative());
 }
-
-
-    
-

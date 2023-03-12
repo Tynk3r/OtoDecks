@@ -1,11 +1,3 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-  ==============================================================================
-*/
-
 #include "MainComponent.h"
 
 //==============================================================================
@@ -77,3 +69,17 @@ void MainComponent::resized()
     playlistComponent.setBounds(0, getHeight() / 2, getWidth(), getHeight() / 2);
 }
 
+void MainComponent::LoadTrack(URL audioURL, int deckNum)
+{
+    switch (deckNum)
+    {
+    case 1:
+        deckGUI1.loadURL(audioURL);
+        break;
+    case 2:
+        deckGUI2.loadURL(audioURL);
+        break;
+    default:
+        break;
+    }
+}

@@ -1,15 +1,6 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
-#include "DJAudioPlayer.h"
 #include "DeckGUI.h"
 #include "PlaylistComponent.h"
 
@@ -35,7 +26,10 @@ public:
     void paint (Graphics& g) override;
     void resized() override;
 
+    void LoadTrack(URL audioURL, int deckNum);
+
 private:
+
     //==============================================================================
     // Your private member variables go here...
      
@@ -50,7 +44,7 @@ private:
 
     MixerAudioSource mixerSource; 
 
-    PlaylistComponent playlistComponent;    
-    
+    PlaylistComponent playlistComponent = PlaylistComponent(&deckGUI1, &deckGUI2);
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
