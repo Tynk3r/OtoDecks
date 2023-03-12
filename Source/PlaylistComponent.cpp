@@ -1,22 +1,21 @@
-/*
-  ==============================================================================
-
-    PlaylistComponent.cpp
-    Created: 12 Mar 2023 10:41:19pm
-    Author:  googa
-
-  ==============================================================================
-*/
-
 #include <JuceHeader.h>
 #include "PlaylistComponent.h"
 
 //==============================================================================
 PlaylistComponent::PlaylistComponent()
 {
+    addAndMakeVisible(searchLabel);
+    searchLabel.setText("SEARCH FOR ->", dontSendNotification);
+    searchLabel.setJustificationType(Justification::centred);
+    searchLabel.setColour(juce::Label::backgroundColourId, juce::Colours::darkgrey);
+    addAndMakeVisible(searchBar);
+    searchBar.setEditable(true);
+    searchBar.setColour(juce::Label::backgroundColourId, juce::Colours::lightgrey);
+    searchBar.onTextChange = [this] { searchText = searchBar.getText().toLowerCase(); FilterTracks(); };
+
     addAndMakeVisible(tableComponent);
     tableComponent.getHeader().addColumn("Filename", 1, 400);
-    tableComponent.getHeader().addColumn("Length", 2, 150);
+    tableComponent.getHeader().addColumn("Length", 2, 100);
     tableComponent.getHeader().addColumn("", 3, 150);
     tableComponent.getHeader().addColumn("", 4, 150);
 
@@ -27,10 +26,8 @@ PlaylistComponent::PlaylistComponent()
     addAndMakeVisible(clearButton);
     clearButton.addListener(this);
 
-    trackTitles.push_back("Track 1");
-    trackTitles.push_back("Track 2");
-    trackTitles.push_back("Track 3");
-    trackTitles.push_back("Track 4");
+    tracks.push_back(Track("Track 1", 2, URL()));
+    FilterTracks();
 }
 
 PlaylistComponent::~PlaylistComponent()
@@ -52,14 +49,16 @@ void PlaylistComponent::paint (juce::Graphics& g)
 void PlaylistComponent::resized()
 {
     float height = getHeight() / 8;
-    tableComponent.setBounds(0, 0, getWidth(), height * 7);
+    searchLabel.setBounds(0, 0, getWidth() * 0.25f, height);
+    searchBar.setBounds(getWidth() * 0.25f, 0, getWidth() * 0.75f, height);
+    tableComponent.setBounds(0, height, getWidth(), height * 6);
     loadButton.setBounds(0, height * 7, getWidth() / 2, height);
     clearButton.setBounds(getWidth() / 2, height * 7, getWidth() / 2, height);
 }
 
 int PlaylistComponent::getNumRows()
 {
-    return trackTitles.size();
+    return filteredTracks.size();
 }
 
 void PlaylistComponent::paintRowBackground(Graphics& g, int rowNumber, int width, int height, bool rowIsSelected)
@@ -79,10 +78,10 @@ void PlaylistComponent::paintCell(Graphics& g, int rowNumber, int columnId, int 
     switch (columnId)
     {
     case 1: // Filename
-        g.drawText(trackTitles[rowNumber], 2, 0, width - 4, height, Justification::centredLeft, true);
+        g.drawText(filteredTracks[rowNumber].getName(), 2, 0, width - 4, height, Justification::centredLeft, true);
         break;
     case 2: // Length
-        g.drawText("long", 2, 0, width - 4, height, Justification::centredLeft, true);
+        g.drawText(std::to_string(filteredTracks[rowNumber].getLength()), 2, 0, width - 4, height, Justification::centredLeft, true);
         break;
     default:
         break;
@@ -96,15 +95,18 @@ void PlaylistComponent::cellClicked(int rowNumber, int columnId, const MouseEven
 
 Component* PlaylistComponent::refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate)
 {
-    if (columnId == 3)
-    {
-        if (existingComponentToUpdate == nullptr)
-        {
-            TextButton* btn = new TextButton("Play on 1");
-            existingComponentToUpdate = btn;
+    if (existingComponentToUpdate == nullptr) {
+        TextButton* btn = nullptr;
+        if (columnId == 3) {
+            btn = new TextButton("Play on 1");
+        }
+        else if (columnId == 4) {
+            btn = new TextButton("Play on 2");
+        }
+        if (btn != nullptr) {
             btn->addListener(this);
-            String id{ std::to_string(rowNumber) };
-            btn->setComponentID(id);
+            btn->setComponentID(String(rowNumber));
+            existingComponentToUpdate = btn;
         }
     }
     return existingComponentToUpdate;
@@ -114,8 +116,34 @@ void PlaylistComponent::buttonClicked(Button* button)
 {
     if (button == &loadButton)
     {
-        trackTitles.push_back("Track 5");
-        tableComponent.updateContent();
-        tableComponent.repaint();
+        tracks.push_back(Track("Track 2", 2, URL()));
     }
+    FilterTracks();
+}
+
+void PlaylistComponent::FilterTracks()
+{
+    if (!filteredTracks.empty())
+    {
+        filteredTracks.clear();
+    }
+    if (searchText.isEmpty())
+    {
+        filteredTracks = tracks;
+    }
+    else
+    {
+        if (!tracks.empty())
+        {
+            for (Track t : tracks)
+            {
+                if (t.getName().toLowerCase().contains(searchText))
+                {
+                    filteredTracks.push_back(t);
+                }
+            }
+        }        
+    }
+    tableComponent.updateContent();
+    tableComponent.repaint();
 }

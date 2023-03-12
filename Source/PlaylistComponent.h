@@ -1,20 +1,8 @@
-/*
-  ==============================================================================
-
-    PlaylistComponent.h
-    Created: 12 Mar 2023 10:41:19pm
-    Author:  googa
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
+#include "Track.h"
 
-//==============================================================================
-/*
-*/
 class PlaylistComponent  :  public Component, 
                             public TableListBoxModel, 
                             public Button::Listener
@@ -33,11 +21,17 @@ public:
     Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override;
     void buttonClicked(Button* button) override;
 
+    void FilterTracks();
+
 private:
     TableListBox tableComponent;
-    std::vector<std::string> trackTitles;
+    std::vector<Track> tracks;
+    std::vector<Track> filteredTracks;
     TextButton loadButton{ "ADD TRACK" };
     TextButton clearButton{ "CLEAR TRACKS" };
+    Label searchLabel;
+    Label searchBar;
+    String searchText = "";
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlaylistComponent)
 };
